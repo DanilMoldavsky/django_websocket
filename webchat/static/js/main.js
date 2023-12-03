@@ -2,6 +2,17 @@ const ws = new WebSocket('ws://localhost:8000/ws/presence/');
 const presenceEl = document.getElementById('pre_cnt');
 const messagesEl = document.getElementById('messages');
 const onlineUsers = document.querySelector("#online-users");
+let myForm = document.getElementById("myForm");
+
+myForm.addEventListener("submit", function(event) {
+	event.preventDefault();
+	var username = document.getElementById("username").value;
+	ws.send(JSON.stringify({
+		"username": username
+	}));
+	console.log('Имя отправлено ' + username);
+});
+
 
 ws.onmessage = (event) => {
   onlineUsers.innerHTML = "";

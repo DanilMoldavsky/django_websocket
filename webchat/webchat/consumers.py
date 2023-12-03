@@ -1,6 +1,7 @@
-import json
 from channels.generic.websocket import WebsocketConsumer
+from django.contrib.auth.models import User
 
+import json
 
 class PresenceConsumer(WebsocketConsumer):
 
@@ -8,8 +9,11 @@ class PresenceConsumer(WebsocketConsumer):
 
     def connect(self):
         self.accept()
-        self.user = self.scope["user"]
+        self.user = self.scope.get('user')
+
         self.connections.append(self)
+        user = User.objects.create_user("=SGHB:JKAHSGFJK>H", password='12345')
+        self.djuser = user
         self.update_indicator(msg="Connected")
 
     def disconnect(self, code):
@@ -20,12 +24,30 @@ class PresenceConsumer(WebsocketConsumer):
 
     def update_indicator(self, msg):
         for connection in self.connections:
-            connection.send(
-                text_data=json.dumps(
-                    {
-                        "msg": f"{self.user} {msg}",
-                        "online": f"{len(self.connections)}",
-                        "users": [f"{user.scope['user']}" for user in self.connections],                        
-                    }
-                )
-            )
+            text_data = json.dumps(
+				{
+					"msg": f"{self.user}: {msg}",
+					"online": f"{len(self.connections)}",
+					"users": [str(client.user) for client in self.connections],
+				}
+			)
+            
+            
+            if msg == 'Update Username':
+                self.djuser.username = self.user 
+                
+            self.djuser.save()
+            print(self.djuser)
+            connection.send(text_data=text_data) 
+            
+    def receive(self, text_data):
+        
+        text_data_json = json.loads(text_data)
+        username = text_data_json['username']
+        
+        self.user = username
+        self.update_indicator(msg='Update Username')
+        # # Отправка ответа обратно клиенту
+        # self.send(text_data=json.dumps({
+        #     'message': f"Hello, {username}!"
+        # }))

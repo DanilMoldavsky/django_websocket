@@ -14,13 +14,16 @@
       <div class="columns">
         <div class="column">
 
-          {% if user.is_authenticated %}
-          Hello <strong>{{ user }}</strong>
+          
+          {% if user.get_username != 'New' %}
+          Hello <strong>{{ user.get_username }}</strong>
           <br>
-          <a href="{% url 'logout' %}">Logout</a>
-          {% else %}
-          <a href="{% url 'login' %}">Login</a>
-          {% endif %}
+		  {% endif %}
+		  <form id="myForm" action="#" method="post">
+			<label for="username">Username:</label>
+			<input type="text" name="username" id="username">
+			<button type="submit">Submit</button>
+		  </form>
           <h1 class="title">Online Presence Indicator</h1>
           <div id="presence"><span class="tag is-success" id="pre_cnt">0</span> users online</div>
           <ul id="messages"></ul>
