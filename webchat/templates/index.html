@@ -18,15 +18,25 @@
           {% if user.get_username != 'New' %}
           Hello <strong>{{ user.get_username }}</strong>
           <br>
-		  {% endif %}
-		  <form id="myForm" action="#" method="post">
-			<label for="username">Username:</label>
-			<input type="text" name="username" id="username">
-			<button type="submit">Submit</button>
-		  </form>
+          {% endif %}
+          <form id="myForm" action="#" method="post">
+          <label for="username">Username:</label>
+          <input type="text" name="username" id="username">
+          <button type="submit">Submit</button>
+          </form>
           <h1 class="title">Online Presence Indicator</h1>
           <div id="presence"><span class="tag is-success" id="pre_cnt">0</span> users online</div>
           <ul id="messages"></ul>
+        </div>
+        <div class="column">
+          <div class="box">
+            <h1 class="title">Chat</h1>
+            <div id="chat"></div>
+            <div>
+              <input type="text" name="message_input">
+              <input type="button" name="send_message_button" value="Send message">
+            </div>
+          </div>
         </div>
         <div class="column">
           <div class="box">

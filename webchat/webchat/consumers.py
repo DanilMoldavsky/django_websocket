@@ -12,8 +12,8 @@ class PresenceConsumer(WebsocketConsumer):
         self.user = self.scope.get('user')
 
         self.connections.append(self)
-        user = User.objects.create_user("=SGHB:JKAHSGFJK>H", password='12345')
-        self.djuser = user
+        # user = User.objects.create_user("=SHB:JKAHSGFJK>H", password='12345')
+        # self.djuser = user
         self.update_indicator(msg="Connected")
 
     def disconnect(self, code):
@@ -33,21 +33,30 @@ class PresenceConsumer(WebsocketConsumer):
 			)
             
             
-            if msg == 'Update Username':
-                self.djuser.username = self.user 
-                
-            self.djuser.save()
-            print(self.djuser)
-            connection.send(text_data=text_data) 
+            # if msg == 'Update Username':
+            #     self.djuser.username = self.user 
+            # self.djuser.save()
+            # print(self.djuser)
             
+            connection.send(text_data=text_data) 
+    
+    
+    def send_message(self, message: str):
+        for client in self.connections:
+            client.send(message)
+    
+    
     def receive(self, text_data):
         
         text_data_json = json.loads(text_data)
-        username = text_data_json['username']
-        
-        self.user = username
-        self.update_indicator(msg='Update Username')
-        # # Отправка ответа обратно клиенту
-        # self.send(text_data=json.dumps({
-        #     'message': f"Hello, {username}!"
-        # }))
+        try:
+            username = text_data_json['username']
+            
+            self.user = username
+            self.update_indicator(msg='Update Username')
+            # # Отправка ответа обратно клиенту
+            # self.send(text_data=json.dumps({
+            #     'message': f"Hello, {username}!"
+            # }))
+        except:
+            self.send_message(text_data_json['message'])
