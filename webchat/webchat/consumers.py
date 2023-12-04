@@ -57,6 +57,6 @@ class PresenceConsumer(WebsocketConsumer):
             # # Отправка ответа обратно клиенту
             # self.send(text_data=json.dumps({
             #     'message': f"Hello, {username}!"
-            # }))
+            # }))3
         except:
             self.send_message(text_data_json['message'])
