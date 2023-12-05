@@ -59,4 +59,8 @@ class PresenceConsumer(WebsocketConsumer):
             #     'message': f"Hello, {username}!"
             # }))3
         except:
-            self.send_message(text_data_json['message'])
+            username = text_data_json['user']
+            message = text_data_json['message']
+            self.send_message(json.dumps({
+                'message': f'{username}: {message}',
+            }))

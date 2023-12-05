@@ -18,30 +18,37 @@ myForm.addEventListener("submit", function(event) {
 
 
 ws.onmessage = (event) => {
-  onlineUsers.innerHTML = "";
-  chat.innerHTML = "";
-  let data = JSON.parse(event.data)
-  console.log(data)
-  presenceEl.innerHTML = data.online;
+	let data = JSON.parse(event.data)
+	console.log(data)
 
-  const li1 = document.createElement('li');
-  li1.innerHTML = data.msg;
-  messagesEl.appendChild(li1);
+	if ('message' in data) {
+		const li3 = document.createElement("li");
+		li3.classList.add("on-us")
+		li3.innerHTML = data.message;
+		chat.appendChild(li3);
+	} else {
+		presenceEl.innerHTML = data.online;
 
-  data.users.forEach(user => {
-	const li2 = document.createElement("li");
-	li2.classList.add("on-us")
-	li2.innerHTML = user;
-	onlineUsers.appendChild(li2);
-  });
-
-  chat.appendChild(data.message);
+		const li1 = document.createElement('li');
+		li1.innerHTML = data.msg;
+		messagesEl.appendChild(li1);
+	  
+		onlineUsers.innerHTML = "";
+		data.users.forEach(user => {
+		  const li2 = document.createElement("li");
+		  li2.classList.add("on-us")
+		  li2.innerHTML = user;
+		  onlineUsers.appendChild(li2);
+		});
+	}
 };
 
 sendMessageButton.onclick = () => {
 	let message = messageInput.value
+	let username = document.getElementById("username").value
 	ws.send(JSON.stringify({
-		"message": message
+		"user": username,
+		"message": message,
 	}));
 	messageInput.value = '';
 };
