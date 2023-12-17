@@ -15,9 +15,9 @@
         <div class="column">
 
           
-          {% if user.get_username != 'New' %}
-          Hello <strong>{{ user.get_username }}</strong>
-          <br>
+          {% if name %}
+            Hello <strong>{{ name }}</strong>
+            <br>
           {% endif %}
           <form id="myForm" action="#" method="post">
           <label for="username">Username:</label>
@@ -35,6 +35,8 @@
             <div>
               <input type="text" name="message_input">
               <input type="button" name="send_message_button" value="Send message">
+              <form id="myForm">
+                <input type="file" id="myImage">
             </div>
           </div>
         </div>
