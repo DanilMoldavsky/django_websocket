@@ -7,15 +7,19 @@ const messageInput = document.querySelector('input[name="message_input"]');
 const sendMessageButton = document.querySelector('input[name="send_message_button"]');
 let myForm = document.getElementById("myForm");
 var inputImg = document.getElementById('myImageInput');
+
 // Отправка на клиента сообщение закончено, добавить функцию показа сообщения
+
 
 myForm.addEventListener("submit", function(event) {
 	event.preventDefault();
 	var username = document.getElementById("username").value;
 	ws.send(JSON.stringify({
-		"username": username
+		"username": username,
+		'type': 'update',
 	}));
 });
+
 
 function base64ToBytes(base64) {
 	var binaryString = atob(base64);
@@ -24,120 +28,124 @@ function base64ToBytes(base64) {
 	  bytes[i] = binaryString.charCodeAt(i);
 	}
 	return bytes;
-  }
+}
 
+function handleImgMessage(data){
+	// const blobURL = URL.createObjectURL(data);
+	const img = document.createElement('img');
+	img.src = data.img;
+	chat.appendChild(img);
+}
 
-// function sendFile(file) {
-//     const reader = new FileReader();
+function handleTextMessage(data){
+	data_json = JSON.parse(data);
+	if (data_json.type === 'chat') {
+		
+		// const li3 = document.createElement("li");
+		// li3.classList.add("on-us")
+		// const messageFinal = data_json.username + data_json.message
+		// li3.innerHTML = messageFinal;
+		// chat.appendChild(li3);
+
+		// handleImgMessage(data_json)
+	
+		const chat_entry = document.createElement('li')
  
-//     reader.onload = function(event) {
-//         socket.send(event.target.result);
-//     };
- 
-//     reader.readAsArrayBuffer(file);
-// }
+		const username_elem = document.createElement('p')
+		username_elem.innerHTML = data_json.username
+		chat_entry.appendChild(username_elem)
+		
+		if(data_json.message !== null) {
+			const message_elem  = document.createElement('p')
+			message_elem.innerHTML = data_json.message
+			chat_entry.appendChild(message_elem)
+		}
+		
+		if(data_json.img !== null) {
+			const img_elem = document.createElement('img')
+			img_elem.src = data_json.img
+			chat_entry.appendChild(img_elem)
+		}
+		
+		chat.appendChild(chat_entry)
 
 
-ws.onmessage = (event) => {
-	let data = JSON.parse(event.data)
-	console.log(data)
 
-	if ('message' in data) {
-		const li3 = document.createElement("li");
-		li3.classList.add("on-us")
-		li3.innerHTML = data.message;
-		chat.appendChild(li3);
+	} else if (data_json.type === 'update') {
 
-	} else {
-		presenceEl.innerHTML = data.online;
+		presenceEl.innerHTML = data_json.online;
 
 		const li1 = document.createElement('li');
-		li1.innerHTML = data.msg;
+		li1.innerHTML = data_json.msg;
 		messagesEl.appendChild(li1);
 	  
 		onlineUsers.innerHTML = "";
-		data.users.forEach(user => {
+		data_json.users.forEach(user => {
 		  const li2 = document.createElement("li");
-		  li2.classList.add("on-us")
+		  li2.classList.add("on-us");
 		  li2.innerHTML = user;
 		  onlineUsers.appendChild(li2);
-		});
+		})
 	}
+}
+
+
+
+ws.onmessage = (event) => {
+
+	if (event.data instanceof Blob) {
+		handleBlobMessage(event.data)
+	} else {
+		handleTextMessage(event.data)
+	};
+
 };
 
 
 sendMessageButton.onclick = () => {
 	let message = messageInput.value
 	let username = document.getElementById("username").value
+	console.log(message)
+	const fileInput = document.getElementById('myImage');
 
-	//! Отправка картинок на сервер
-    const fileInput = document.getElementById('myImage');
-	const file = fileInput.files[0];
-	// const chunkSize = 4096; // Размер каждого куска в байтах
+	if (fileInput.files.length > 0){
+		//! Отправка картинок на сервер
+		const file = fileInput.files[0];
 	
-	// const totalChunks = Math.ceil(file.size / chunkSize);
-	// let currentChunk = 0;
-	// let fileParts = [];
-	// let filePartsStr = []; 
+		function sendFile(file) {
+			var reader = new FileReader();
+			reader.onload = function(event) {
+				// var byteArray = new Uint8Array(event.target.result);
+				// ws.send(byteArray.buffer);
+				const base64Image = event.target.result;
+				const json = {
+					img: base64Image,
+					'type': 'img',
+				};
+				const jsonString = JSON.stringify(json);
+				ws.send(jsonString);
+			};
+			reader.readAsDataURL(file);
+		}
+		sendFile(file);
 
-	
-	// function uploadChunk(chunk) {
-	// 	// const formData = new FormData();
-	// 	const start = chunk * chunkSize;
-	// 	const end = Math.min(start + chunkSize, file.size);
-	// 	const chunkData = file.slice(start, end);
+		if (messageInput.value.trim() !== ""){
+			ws.send(JSON.stringify({
+				// "user": username,
+				"message": message,
+				'type': 'message',
+			}));
+			messageInput.value = '';
+		}
 
-	// 	const reader = new FileReader();
-	// 	reader.onload = function(event) {
-	// 		const chunkBytes = new Uint8Array(event.target.result);
-
-	// 		// Сохраните принятую часть файла в массиве
-	// 		fileParts.push(...chunkBytes);
-	// 		filePartsArray = Array.from(fileParts)
-			
-	// 		filePartsArray.forEach(chunkBytes => {
-	// 			const base64 = btoa(String.fromCharCode.apply(null, chunkBytes));
-	// 			filePartsStr.push(base64);
-	// 		  });
-	// 		console.log(filePartsStr)
-	// 		if (chunk === totalChunks - 1) {
-	// 			// Если получены все части файла, отправьте массив на сервер
-	// 			const message = {
-	// 				user: username,
-	// 				totalChunks,
-	// 				file: Array.from(fileParts)  // Преобразуйте массив Uint8Array в обычный массив
-	// 			};
-			
-	// 			// Отправка части файла через WebSocket
-	// 			ws.send(JSON.stringify(message));
-	// 			console.log(message)
-	// 		}
-	// 	};
-	// 	reader.readAsArrayBuffer(chunkData);
-	// }
-	// // while (currentChunk < totalChunks) {
-	// // 	uploadChunk(currentChunk);
-	// // 	currentChunk++;
-	// // }
-	// uploadChunk(currentChunk);
-
-	function sendFile(file) {
-		// var data = ctx.getImageData(0, 0, 200, 200).data;
-		var reader = new FileReader();
-		reader.onload = function(event) {
-			var byteArray = new Uint8Array(event.target.result);
-			ws.send(byteArray.buffer);
-			console.log(byteArray.buffer);
-			console.log(byteArray);
-		};
-		reader.readAsArrayBuffer(file);
+	} else {
+		ws.send(JSON.stringify({
+			// "user": username,
+			"message": message,
+			'type': 'message',
+		}));
+		messageInput.value = '';
 	}
-	sendFile(file)
-	//! Конец блока с отправкой на сервер картинки
 
-	// ws.send(JSON.stringify({
-	// 	"user": username,
-	// 	"message": message,
-	// }));
-	// messageInput.value = '';
-};
+
+}
